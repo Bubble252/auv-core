@@ -1,6 +1,6 @@
 # auv-core Module Map
 
-**状态**：`REF_CORE_READY`<br>
+**状态**：`REF_CORE_COMPLETE`<br>
 **用途**：说明共享层的职责、边界、公共 API、测试和重构豁免。
 
 ## 模块清单

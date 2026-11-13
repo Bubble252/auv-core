@@ -31,9 +31,22 @@
 ## 验证
 
 ```bash
-python -m pytest -q
-python ../scripts/check_repo_dependencies.py --check
+pytest -q tests
+ruff check src tests
+ruff format --check src tests
+python /home/bubble/水下机器人/总协调/scripts/check_code_shape.py --root . --check
+python /home/bubble/水下机器人/scripts/check_repo_dependencies.py --check
 ```
+
+`mypy src` 仍会在外部 PVS 依赖上报告 2 个缺少 stub 的错误；这是已登记基线，
+不能通过关闭检查或增加无到期 waiver 隐藏。
+
+重构基线、模块职责、候选和 G04 交接边界见 `doc/refactor/`：
+
+- `BASELINE.md`：测试、已知失败和回滚点；
+- `INVENTORY.md`：允许/禁止目录、自动化候选和人工批准点；
+- `MODULE_MAP.md`：模块职责与非职责；
+- `EQUIVALENCE.md`：CORE-D1/D2 行为等价证据。
 
 ## Git
 

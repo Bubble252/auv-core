@@ -1,6 +1,6 @@
 # auv-core Refactor Baseline
 
-**状态**：`REF_CORE_READY`<br>
+**状态**：`REF_CORE_COMPLETE`<br>
 **仓库**：`settled_共享基础`（发行名 `auv-core`）<br>
 **基线 commit**：`fdbfcc1`<br>
 **日期**：2026-11-13

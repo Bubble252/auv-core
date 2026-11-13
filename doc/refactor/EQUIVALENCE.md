@@ -1,6 +1,6 @@
 # auv-core Equivalence Evidence
 
-**状态**：`REF_CORE_PASS`<br>
+**状态**：`REF_CORE_COMPLETE`<br>
 **用途**：记录 CORE-D1 / CORE-D2 重构前后的行为等价证据。
 
 ## 候选信息

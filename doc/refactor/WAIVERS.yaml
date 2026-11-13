@@ -1,5 +1,5 @@
 version: 1
-status: active
+status: ref_core_complete
 waivers: []
 
 # 现有违规由 doc/refactor/CODE_SHAPE_BASELINE.json 做 ratchet，不自动等于 waiver。
