@@ -9,17 +9,18 @@
 
 | 检查 | 命令 | 基线 |
 |---|---|---|
-| pytest | `/home/bubble/水下机器人/.venv/bin/python -m pytest -q tests` | `24 passed, 5 skipped` |
+| pytest | `/home/bubble/水下机器人/.venv/bin/python -m pytest -q tests` | `32 passed, 5 skipped` |
 | ruff | `/home/bubble/水下机器人/.venv/bin/python -m ruff check src tests` | PASS |
 | format | `/home/bubble/水下机器人/.venv/bin/python -m ruff format --check src tests` | PASS |
-| shape | `/home/bubble/水下机器人/.venv/bin/python /home/bubble/水下机器人/总协调/scripts/check_code_shape.py --root . --check` | 0 new；存量 25 条在 `CODE_SHAPE_BASELINE.json` |
+| shape | `/home/bubble/水下机器人/.venv/bin/python /home/bubble/水下机器人/总协调/scripts/check_code_shape.py --root . --check` | 0 new；存量 19 条在 `CODE_SHAPE_BASELINE.json` |
 | dependency | `/home/bubble/水下机器人/.venv/bin/python /home/bubble/水下机器人/scripts/check_repo_dependencies.py --check` | PASS（工作区根执行） |
+| equivalence | CORE-D1/D2 before/after golden fixture | `PASS` |
 
 ## 已知失败与跳过
 
 - 5 个 PVS 测试因外部 `PythonVehicleSimulator` checkout 或其绘图依赖不可用而跳过；
   这是环境缺包，不是通过。
-- `contracts.py`（695 行）和 `geometry.py`（544 行）超过新库模块硬上限；已进入
+- `contracts.py`（690 行）和 `geometry.py`（543 行）超过新库模块硬上限；已进入
   ratchet baseline，触碰时必须拆分完整职责或写 waiver。
 - `mypy` 的两个外部 PVS stub 错误保留在 G01 记录中，不在本候选混入修复。
 
