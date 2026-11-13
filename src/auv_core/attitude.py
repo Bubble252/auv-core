@@ -1,19 +1,17 @@
+"""Quaternion and attitude conversions in NED/FRD convention.
+
+All quaternions are stored as ``xyzw`` and all angles are radians. The module is
+pure and deterministic; it does not normalise in place or mutate caller arrays.
+"""
+
 from __future__ import annotations
 
 from math import atan2, cos, sin
 
 import numpy as np
 
+from ._validation import as_point
 from .contracts import FloatArray
-
-
-def _point(value: object, name: str) -> FloatArray:
-    array = np.asarray(value, dtype=np.float64)
-    if array.shape != (3,):
-        raise ValueError(f"{name} must have shape (3,), got {array.shape}")
-    if not np.all(np.isfinite(array)):
-        raise ValueError(f"{name} must contain only finite values")
-    return array
 
 
 def _unit_direction(direction: FloatArray) -> FloatArray | None:
@@ -26,7 +24,7 @@ def _unit_direction(direction: FloatArray) -> FloatArray | None:
 def forward_quaternion(direction_ned: FloatArray) -> FloatArray:
     """Return the shortest-arc quaternion that aligns body +x with a direction."""
 
-    direction = _unit_direction(_point(direction_ned, "direction_ned"))
+    direction = _unit_direction(as_point(direction_ned, "direction_ned"))
     if direction is None:
         return np.array([0.0, 0.0, 0.0, 1.0], dtype=np.float64)
     dot = float(np.clip(direction[0], -1.0, 1.0))

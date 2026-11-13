@@ -1,3 +1,10 @@
+"""Three-dimensional adaptive line-of-sight guidance.
+
+The module turns a planned trajectory and a state estimate into a reference
+pose and speed. Positions use NED metres, angles use radians and the output is
+deterministic; actuator saturation and dynamics remain outside this module.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -5,29 +12,9 @@ from math import atan2, cos, hypot, pi, sin
 
 import numpy as np
 
+from ._validation import as_vector, finite_non_negative, finite_positive, wrap_angle
 from .attitude import forward_quaternion
 from .contracts import CurrentField, FloatArray, Reference, State, Trajectory
-
-
-def _finite_positive(value: float, name: str) -> float:
-    if not np.isfinite(value) or value <= 0.0:
-        raise ValueError(f"{name} must be finite and positive")
-    return float(value)
-
-
-def _finite_non_negative(value: float, name: str) -> float:
-    if not np.isfinite(value) or value < 0.0:
-        raise ValueError(f"{name} must be finite and non-negative")
-    return float(value)
-
-
-def _vector(value: object, name: str) -> FloatArray:
-    array = np.asarray(value, dtype=np.float64)
-    if array.shape != (3,):
-        raise ValueError(f"{name} must have shape (3,), got {array.shape}")
-    if not np.all(np.isfinite(array)):
-        raise ValueError(f"{name} must contain only finite values")
-    return array
 
 
 def _unique_path_points(trajectory: Trajectory) -> FloatArray:
@@ -54,10 +41,6 @@ def _point_at_arclength(
             fraction = (target_s - cumulative_s_m[index]) / segment_length
             return points[index] + fraction * (points[index + 1] - points[index])
     return points[-1].copy()
-
-
-def _wrap_angle(angle_rad: float) -> float:
-    return float((angle_rad + pi) % (2.0 * pi) - pi)
 
 
 @dataclass(frozen=True)
@@ -105,25 +88,25 @@ class ThreeDAlosGuidance:
         compensate_current: bool = True,
         validity_period_s: float = 0.5,
     ) -> None:
-        self.horizontal_lookahead_m = _finite_positive(
+        self.horizontal_lookahead_m = finite_positive(
             horizontal_lookahead_m, "horizontal_lookahead_m"
         )
-        self.vertical_lookahead_m = _finite_positive(vertical_lookahead_m, "vertical_lookahead_m")
-        self.speed_mps = _finite_positive(speed_mps, "speed_mps")
-        self.min_lookahead_m = _finite_positive(min_lookahead_m, "min_lookahead_m")
-        self.max_lookahead_m = _finite_positive(max_lookahead_m, "max_lookahead_m")
+        self.vertical_lookahead_m = finite_positive(vertical_lookahead_m, "vertical_lookahead_m")
+        self.speed_mps = finite_positive(speed_mps, "speed_mps")
+        self.min_lookahead_m = finite_positive(min_lookahead_m, "min_lookahead_m")
+        self.max_lookahead_m = finite_positive(max_lookahead_m, "max_lookahead_m")
         if self.min_lookahead_m > self.max_lookahead_m:
             raise ValueError("min_lookahead_m must not exceed max_lookahead_m")
         if not self.min_lookahead_m <= self.horizontal_lookahead_m <= self.max_lookahead_m:
             raise ValueError("horizontal_lookahead_m must lie within the lookahead bounds")
         if not self.min_lookahead_m <= self.vertical_lookahead_m <= self.max_lookahead_m:
             raise ValueError("vertical_lookahead_m must lie within the lookahead bounds")
-        self.horizontal_gain = _finite_non_negative(horizontal_gain, "horizontal_gain")
-        self.vertical_gain = _finite_non_negative(vertical_gain, "vertical_gain")
-        self.lookahead_error_gain = _finite_non_negative(
+        self.horizontal_gain = finite_non_negative(horizontal_gain, "horizontal_gain")
+        self.vertical_gain = finite_non_negative(vertical_gain, "vertical_gain")
+        self.lookahead_error_gain = finite_non_negative(
             lookahead_error_gain, "lookahead_error_gain"
         )
-        self.validity_period_s = _finite_positive(validity_period_s, "validity_period_s")
+        self.validity_period_s = finite_positive(validity_period_s, "validity_period_s")
         if not isinstance(compensate_current, bool):
             raise TypeError("compensate_current must be a bool")
         self.compensate_current = compensate_current
@@ -198,7 +181,7 @@ class ThreeDAlosGuidance:
 
         path_heading_rad = atan2(tangent[1], tangent[0])
         heading_correction_rad = atan2(horizontal_error_m, effective_horizontal_lookahead_m)
-        desired_heading_rad = _wrap_angle(
+        desired_heading_rad = wrap_angle(
             path_heading_rad - self.horizontal_gain * heading_correction_rad
         )
         path_pitch_rad = atan2(-tangent[2], horizontal_norm)
@@ -222,8 +205,9 @@ class ThreeDAlosGuidance:
         commanded_water_speed_mps = self.speed_mps
         desired_body_direction = desired_ground_direction.copy()
         if self.compensate_current and self.current_field is not None:
-            current = _vector(
+            current = as_vector(
                 self.current_field.sample(position, t_s),
+                3,
                 "current velocity",
             )
             water_relative_velocity = self.speed_mps * desired_ground_direction - current

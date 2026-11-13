@@ -1,0 +1,98 @@
+{
+  "exception": [
+    {
+      "case": "state.bad-shape",
+      "message": "position_ned_m must have shape (3,), got (2,)",
+      "type": "ValueError"
+    },
+    {
+      "case": "attitude.bad-shape",
+      "message": "direction_ned must have shape (3,), got (2,)",
+      "type": "ValueError"
+    },
+    {
+      "case": "current.bad-shape",
+      "message": "reference_velocity_ned_mps must have shape (3,), got (2,)",
+      "type": "ValueError"
+    },
+    {
+      "case": "guidance.bad-gain",
+      "message": "lookahead_error_gain must be finite and non-negative",
+      "type": "ValueError"
+    },
+    {
+      "case": "control.bad-step",
+      "message": "nominal_step_s must be finite and positive",
+      "type": "ValueError"
+    }
+  ],
+  "inputs": {
+    "current_depth_m": 10.0,
+    "euler_rad": [
+      0.1,
+      -0.2,
+      0.3
+    ],
+    "state_position_ned_m": [
+      1.0,
+      0.0,
+      0.0
+    ]
+  },
+  "manifest": {
+    "case": "core-d1-d2",
+    "frames": {
+      "body": "FRD",
+      "position": "NED",
+      "quaternion": "xyzw"
+    },
+    "units": "si"
+  },
+  "outputs": {
+    "control": {
+      "propeller_rpm": 720.0,
+      "rudder_angle_rad": 0.0,
+      "stern_plane_angle_rad": 0.0
+    },
+    "depth_shear": [
+      2.0,
+      -0.2,
+      0.0
+    ],
+    "euler_from_quaternion": [
+      0.10000000000000005,
+      -0.20000000000000007,
+      0.30000000000000004
+    ],
+    "forward_quaternion": [
+      0.0,
+      -0.5036271828823449,
+      0.33575145525489664,
+      0.7960091839647406
+    ],
+    "guidance": {
+      "desired_heading_rad": 0.0,
+      "desired_pitch_rad": 0.0,
+      "horizontal_error_m": 0.0,
+      "reference_position_ned_m": [
+        3.0,
+        0.0,
+        0.0
+      ],
+      "reference_quat_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "vertical_error_m": 0.0
+    },
+    "quaternion_from_euler": [
+      0.06407134770607117,
+      -0.09115754934299072,
+      0.1534393020242226,
+      0.981856172866081
+    ]
+  },
+  "randomized": false
+}

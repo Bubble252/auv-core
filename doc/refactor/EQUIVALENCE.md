@@ -1,6 +1,6 @@
 # auv-core Equivalence Evidence
 
-**状态**：`REF_CORE_READY / PENDING_CANDIDATE_EVIDENCE`<br>
+**状态**：`REF_CORE_PASS`<br>
 **用途**：记录 CORE-D1 / CORE-D2 重构前后的行为等价证据。
 
 ## 候选信息
@@ -42,16 +42,21 @@ public_api_change: none
 /home/bubble/水下机器人/.venv/bin/python -m ruff format --check src tests
 /home/bubble/水下机器人/.venv/bin/python \
   /home/bubble/水下机器人/总协调/scripts/check_code_shape.py --root . --check
+/home/bubble/水下机器人/.venv/bin/python \
+  /home/bubble/水下机器人/总协调/scripts/check_refactor_equivalence.py \
+  --expected tests/fixtures/refactor/core-d1-d2/before.json \
+  --actual tests/fixtures/refactor/core-d1-d2/after.json
 ```
 
 ## 结果
 
-- 通过数：`PENDING`
-- 跳过数：`PENDING`
-- 已知失败：`PENDING`
-- 是否新增失败：`PENDING`
-- 回滚 commit：`PENDING`
-- 结论：`PENDING`
+- 通过数：`32 passed`
+- 跳过数：`5 skipped`（外部 PVS/绘图依赖不可用）
+- 已知失败：无新增；存量跳过单独列在 `BASELINE.md`
+- 是否新增失败：`no`
+- 回滚 commit：`3980b25`（REF-CORE 文档与基线提交）
+- 等价性 fixture：`tests/fixtures/refactor/core-d1-d2/{before,after}.json`
+- 结论：`PASS`
 
 ## 人工检查
 

@@ -1,3 +1,10 @@
+"""Deterministic geometry, obstacle-distance and hull-clearance helpers.
+
+Inputs and outputs use NED positions and metres; quaternions are ``xyzw``.
+Functions in this module do not read files, mutate caller arrays or use random
+state. Sweep sampling is deterministic for a fixed trajectory and spacing.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -6,16 +13,8 @@ from math import ceil
 import numpy as np
 from numpy.typing import NDArray
 
+from ._validation import as_point
 from .contracts import FloatArray, Obstacle, ObstacleMap, State, Trajectory, VehicleSpec
-
-
-def _point(value: object, name: str) -> FloatArray:
-    array = np.asarray(value, dtype=np.float64)
-    if array.shape != (3,):
-        raise ValueError(f"{name} must have shape (3,), got {array.shape}")
-    if not np.all(np.isfinite(array)):
-        raise ValueError(f"{name} must contain only finite values")
-    return array
 
 
 def _points(value: object, name: str) -> FloatArray:
@@ -171,7 +170,7 @@ def hull_sphere_centers_from_pose(
     quat_xyzw: FloatArray,
     hull: HullSpec,
 ) -> FloatArray:
-    position = _point(position_ned_m, "position_ned_m")
+    position = as_point(position_ned_m, "position_ned_m")
     return rotated_hull_offsets(hull, quat_xyzw) + position.reshape(1, 3)
 
 
@@ -225,7 +224,7 @@ def obstacle_signed_distance_array(points_ned_m: FloatArray, obstacle: Obstacle)
 
 
 def obstacle_signed_distance(point_ned_m: FloatArray, obstacle: Obstacle) -> float:
-    point = _point(point_ned_m, "point_ned_m")
+    point = as_point(point_ned_m, "point_ned_m")
     return float(obstacle_signed_distance_array(point.reshape(1, 3), obstacle)[0])
 
 
@@ -241,7 +240,7 @@ def _bounds_signed_distance_array(points_ned_m: FloatArray, bounds_ned_m: FloatA
 
 
 def _bounds_signed_distance(point_ned_m: FloatArray, bounds_ned_m: FloatArray) -> float:
-    point = _point(point_ned_m, "point_ned_m")
+    point = as_point(point_ned_m, "point_ned_m")
     return float(_bounds_signed_distance_array(point.reshape(1, 3), bounds_ned_m)[0])
 
 
@@ -323,7 +322,7 @@ def hull_clearance_details_from_offsets(
 ) -> ClearanceDetails:
     if not isinstance(obstacle_map, ObstacleMap):
         raise TypeError("obstacle_map must be an ObstacleMap")
-    position = _point(position_ned_m, "position_ned_m")
+    position = as_point(position_ned_m, "position_ned_m")
     offsets = np.asarray(rotated_offsets_ned_m, dtype=np.float64)
     if offsets.ndim != 2 or offsets.shape[0] < 1 or offsets.shape[1] != 3:
         raise ValueError("rotated_offsets_ned_m must have shape (N, 3) with N >= 1")
@@ -343,7 +342,7 @@ def point_clearance_details(
         raise TypeError("obstacle_map must be an ObstacleMap")
     if not np.isfinite(radius_m) or radius_m < 0.0:
         raise ValueError("radius_m must be finite and non-negative")
-    point = _point(position_ned_m, "position_ned_m")
+    point = as_point(position_ned_m, "position_ned_m")
     return _clearance_from_centers(point.reshape(1, 3), radius_m, obstacle_map)
 
 
@@ -387,7 +386,7 @@ class SweepResult:
         object.__setattr__(
             self,
             "min_clearance_position_ned_m",
-            _point(self.min_clearance_position_ned_m, "min_clearance_position_ned_m"),
+            as_point(self.min_clearance_position_ned_m, "min_clearance_position_ned_m"),
         )
 
     @property
@@ -496,7 +495,7 @@ class OccupancyGrid:
     occupied: NDArray[np.bool_]
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "origin_ned_m", _point(self.origin_ned_m, "origin_ned_m"))
+        object.__setattr__(self, "origin_ned_m", as_point(self.origin_ned_m, "origin_ned_m"))
         if not np.isfinite(self.resolution_m) or self.resolution_m <= 0.0:
             raise ValueError("resolution_m must be finite and positive")
         occupied = np.asarray(self.occupied, dtype=bool)
@@ -515,11 +514,11 @@ class OccupancyGrid:
         return np.column_stack((self.origin_ned_m, upper))
 
     def contains(self, position_ned_m: FloatArray) -> bool:
-        point = _point(position_ned_m, "position_ned_m")
+        point = as_point(position_ned_m, "position_ned_m")
         return bool(np.all(point >= self.origin_ned_m) and np.all(point < self.bounds_ned_m[:, 1]))
 
     def index_of(self, position_ned_m: FloatArray) -> tuple[int, int, int]:
-        point = _point(position_ned_m, "position_ned_m")
+        point = as_point(position_ned_m, "position_ned_m")
         if not self.contains(point):
             raise ValueError("position_ned_m lies outside the occupancy grid")
         index = np.floor((point - self.origin_ned_m) / self.resolution_m).astype(int)
@@ -530,7 +529,7 @@ class OccupancyGrid:
         return bool(self.occupied[self.index_of(position_ned_m)])
 
     def point_clearance(self, position_ned_m: FloatArray) -> float:
-        point = _point(position_ned_m, "position_ned_m")
+        point = as_point(position_ned_m, "position_ned_m")
         boundary = _bounds_signed_distance(point, self.bounds_ned_m)
         if not self.contains(point):
             return boundary

@@ -1,3 +1,10 @@
+"""Stable data contracts shared by the AUV planner and local controller.
+
+The module defines states, trajectories, task results, actuator commands and
+scenario configuration. It validates shapes, units and finite values but does
+not read files, run simulations, allocate random numbers or import consumers.
+"""
+
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -8,6 +15,8 @@ from typing import Any, Protocol, runtime_checkable
 import numpy as np
 from numpy.typing import NDArray
 
+from ._validation import as_array, finite_non_negative, finite_positive
+
 FloatArray = NDArray[np.float64]
 
 WORLD_FRAME = "world_ned"
@@ -15,21 +24,11 @@ BODY_FRAME = "body_frd"
 
 
 def _vector(value: Any, size: int, name: str) -> FloatArray:
-    array = np.asarray(value, dtype=np.float64)
-    if array.shape != (size,):
-        raise ValueError(f"{name} must have shape ({size},), got {array.shape}")
-    if not np.all(np.isfinite(array)):
-        raise ValueError(f"{name} must contain only finite values")
-    return array
+    return as_array(value, (size,), name)
 
 
 def _rows(value: Any, rows: int, cols: int, name: str) -> FloatArray:
-    array = np.asarray(value, dtype=np.float64)
-    if array.shape != (rows, cols):
-        raise ValueError(f"{name} must have shape ({rows}, {cols}), got {array.shape}")
-    if not np.all(np.isfinite(array)):
-        raise ValueError(f"{name} must contain only finite values")
-    return array
+    return as_array(value, (rows, cols), name)
 
 
 def _row_vector(value: Any, rows: int, name: str) -> FloatArray:
@@ -58,15 +57,11 @@ def _quat_norm(value: FloatArray, name: str) -> FloatArray:
 
 
 def _non_negative(value: float, name: str) -> float:
-    if not np.isfinite(value) or value < 0.0:
-        raise ValueError(f"{name} must be finite and non-negative")
-    return float(value)
+    return finite_non_negative(value, name)
 
 
 def _positive(value: float, name: str) -> float:
-    if not np.isfinite(value) or value <= 0.0:
-        raise ValueError(f"{name} must be finite and positive")
-    return float(value)
+    return finite_positive(value, name)
 
 
 def _optional_positive(value: float | None, name: str) -> float | None:

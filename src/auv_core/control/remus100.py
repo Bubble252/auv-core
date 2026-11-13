@@ -1,10 +1,18 @@
+"""Cascaded REMUS100 tracking controller.
+
+The controller consumes a reference pose and state estimate, then returns
+limited rudder, stern-plane and propeller commands. It owns controller memory
+only; vehicle dynamics and current fields remain injected dependencies.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import atan2, hypot, pi
+from math import atan2, hypot
 
 import numpy as np
 
+from .._validation import finite_non_negative, finite_positive, wrap_angle
 from ..contracts import (
     WORLD_FRAME,
     CurrentField,
@@ -14,22 +22,6 @@ from ..contracts import (
     State,
     VehicleSpec,
 )
-
-
-def _finite_non_negative(value: float, name: str) -> float:
-    if not np.isfinite(value) or value < 0.0:
-        raise ValueError(f"{name} must be finite and non-negative")
-    return float(value)
-
-
-def _finite_positive(value: float, name: str) -> float:
-    if not np.isfinite(value) or value <= 0.0:
-        raise ValueError(f"{name} must be finite and positive")
-    return float(value)
-
-
-def _wrap_angle(angle_rad: float) -> float:
-    return float((angle_rad + pi) % (2.0 * pi) - pi)
 
 
 def _body_x_direction(quat_xyzw: FloatArray) -> FloatArray:
@@ -117,21 +109,21 @@ class Remus100TrackingController:
 
         self.vehicle = vehicle
         self.current_field = current_field
-        self.nominal_step_s = _finite_positive(nominal_step_s, "nominal_step_s")
-        self.heading_gain = _finite_non_negative(heading_gain, "heading_gain")
-        self.heading_rate_gain = _finite_non_negative(heading_rate_gain, "heading_rate_gain")
-        self.pitch_gain = _finite_non_negative(pitch_gain, "pitch_gain")
-        self.pitch_rate_gain = _finite_non_negative(pitch_rate_gain, "pitch_rate_gain")
-        self.speed_feedforward_rpm_per_mps = _finite_non_negative(
+        self.nominal_step_s = finite_positive(nominal_step_s, "nominal_step_s")
+        self.heading_gain = finite_non_negative(heading_gain, "heading_gain")
+        self.heading_rate_gain = finite_non_negative(heading_rate_gain, "heading_rate_gain")
+        self.pitch_gain = finite_non_negative(pitch_gain, "pitch_gain")
+        self.pitch_rate_gain = finite_non_negative(pitch_rate_gain, "pitch_rate_gain")
+        self.speed_feedforward_rpm_per_mps = finite_non_negative(
             speed_feedforward_rpm_per_mps, "speed_feedforward_rpm_per_mps"
         )
-        self.speed_gain_rpm_per_mps = _finite_non_negative(
+        self.speed_gain_rpm_per_mps = finite_non_negative(
             speed_gain_rpm_per_mps, "speed_gain_rpm_per_mps"
         )
-        self.speed_integral_gain_rpm_per_mps_s = _finite_non_negative(
+        self.speed_integral_gain_rpm_per_mps_s = finite_non_negative(
             speed_integral_gain_rpm_per_mps_s, "speed_integral_gain_rpm_per_mps_s"
         )
-        self.max_speed_integral_rpm = _finite_non_negative(
+        self.max_speed_integral_rpm = finite_non_negative(
             max_speed_integral_rpm, "max_speed_integral_rpm"
         )
 
@@ -180,7 +172,7 @@ class Remus100TrackingController:
         dt_s = self._time_step(state.t_s)
         desired_yaw, desired_pitch = _yaw_pitch(reference.quat_xyzw)
         actual_yaw, actual_pitch = _yaw_pitch(state.quat_xyzw)
-        heading_error = _wrap_angle(desired_yaw - actual_yaw)
+        heading_error = wrap_angle(desired_yaw - actual_yaw)
         pitch_error = desired_pitch - actual_pitch
 
         yaw_rate = float(state.angular_velocity_body_rps[2])
