@@ -1,0 +1,6 @@
+version: 1
+status: active
+waivers: []
+
+# 现有违规由 doc/refactor/CODE_SHAPE_BASELINE.json 做 ratchet，不自动等于 waiver。
+# 新增 waiver 必须包含 path、check、reason、expires、owner、approved_by、created。
