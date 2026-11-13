@@ -48,12 +48,32 @@ public_api_change: none
   --actual tests/fixtures/refactor/core-d1-d2/after.json
 ```
 
+消费者 smoke 在独立 `/tmp` 环境安装 refactor 版 `auv-core`，再以 `--no-deps`
+安装两个消费者，不使用跨仓库 `PYTHONPATH`：
+
+```bash
+uv venv --python /home/bubble/水下机器人/.venv/bin/python /tmp/auv-core-consumer-smoke
+uv pip install --python /tmp/auv-core-consumer-smoke/bin/python \
+  -e /home/bubble/水下机器人/settled_共享基础/.worktrees/ref-core-20261113
+uv pip install --python /tmp/auv-core-consumer-smoke/bin/python --no-deps \
+  -e /home/bubble/水下机器人/settled_全局规划器
+uv pip install --python /tmp/auv-core-consumer-smoke/bin/python --no-deps \
+  -e /home/bubble/水下机器人/settled_局部规划器_反应式
+/tmp/auv-core-consumer-smoke/bin/python -c \
+  "from auv_planner import State, ThreeDAlosGuidance, Reference, hull_clearance; \
+   from auv_local import LocalObservation, ReactivePolicy; \
+   from auv_lowlevel import LowLevelConfig, ReferencePath; \
+   print(State, ThreeDAlosGuidance, Reference, hull_clearance, LocalObservation, \
+         ReactivePolicy, LowLevelConfig, ReferencePath)"
+```
+
 ## 结果
 
 - 通过数：`32 passed`
 - 跳过数：`5 skipped`（外部 PVS/绘图依赖不可用）
 - 已知失败：无新增；存量跳过单独列在 `BASELINE.md`
 - 是否新增失败：`no`
+- 消费者 smoke：`PASS`（`auv_planner`、`auv_local`、`auv_lowlevel` 均能加载 refactor 版 core 的公共符号）
 - 回滚 commit：`3980b25`（REF-CORE 文档与基线提交）
 - 等价性 fixture：`tests/fixtures/refactor/core-d1-d2/{before,after}.json`
 - 结论：`PASS`
