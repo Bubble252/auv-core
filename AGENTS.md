@@ -4,7 +4,7 @@
 
 ## 仓库
 
-- 当前独立路径：`/home/bubble/水下机器人-meta-g02/settled_共享基础`。
+- 当前独立路径：`/home/bubble/水下机器人/settled_共享基础`。
 - 分支：`main`；发行名：`auv-core`。
 - 安装顺序：本仓库先安装，随后才能安装 `auv-planner` 或 `auv-local`。
 - 根工作区只保留引用，不跟踪本目录。
@@ -17,6 +17,16 @@
   或 `auv_isaaclab`。
 - 全局规划算法、局部反应式策略、学习训练代码和实验入口不得进入本仓库。
 - 修改公共契约时必须同时运行共享层测试，并通知两个消费者仓库。
+
+## 治理入口
+
+- 工作区规则：`/home/bubble/水下机器人/AGENTS.md`；
+- canonical 代码规范：`/home/bubble/水下机器人/总协调/doc/governance/CODE_STYLE.md`；
+- 接口与单位契约：`/home/bubble/水下机器人/总协调/doc/governance/CODE_INTERFACE_CONTRACT.md`；
+- Goal / matrix / ledger schema：`/home/bubble/水下机器人/总协调/configs/governance/`。
+
+本仓库不复制上述正文。新增 Goal、实验矩阵或 research 记录时，先读 canonical
+文档；共享层本身不承载 Goal 历史、artifact 或训练配置。
 
 ## 验证
 
