@@ -9,7 +9,7 @@
 
 | 检查 | 命令 | 基线 |
 |---|---|---|
-| pytest | `/home/bubble/水下机器人/.venv/bin/python -m pytest -q tests` | `32 passed, 5 skipped` |
+| pytest | `/home/bubble/水下机器人/.venv/bin/python -m pytest -q tests` | `35 passed, 5 skipped` |
 | ruff | `/home/bubble/水下机器人/.venv/bin/python -m ruff check src tests` | PASS |
 | format | `/home/bubble/水下机器人/.venv/bin/python -m ruff format --check src tests` | PASS |
 | shape | `/home/bubble/水下机器人/.venv/bin/python /home/bubble/水下机器人/总协调/scripts/check_code_shape.py --root . --check` | 0 new；存量 19 条在 `CODE_SHAPE_BASELINE.json` |

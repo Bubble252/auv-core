@@ -26,7 +26,7 @@ public_api_change: none
 
 | 项目 | 重构前 | 重构后 | 证据 |
 |---|---|---|---|
-| 输入 shape / dtype | 三维向量、有限值、float64 | 保持相同校验和错误消息 | `tests/test_validation.py` + 现有契约测试 |
+| 输入 shape / dtype | 三维向量、有限值、float64 | 保持相同校验和错误消息 | `tests/test_validation.py` + `tests/test_contract_audit.py` + 现有契约测试 |
 | 输出 shape / dtype | 三维 `float64` | 保持相同 | 同上 |
 | 单位 / 坐标系 | NED / body FRD，角度 rad | 保持相同 | 不改变调用方单位 |
 | 异常类型和消息 | `ValueError`，shape/finite/positive 消息 | 保持相同 | 负控测试逐条断言 |
@@ -69,13 +69,14 @@ uv pip install --python /tmp/auv-core-consumer-smoke/bin/python --no-deps \
 
 ## 结果
 
-- 通过数：`32 passed`
+- 通过数：`35 passed`
 - 跳过数：`5 skipped`（外部 PVS/绘图依赖不可用）
 - 已知失败：无新增；存量跳过单独列在 `BASELINE.md`
 - 是否新增失败：`no`
 - 消费者 smoke：`PASS`（`auv_planner`、`auv_local`、`auv_lowlevel` 均能加载 refactor 版 core 的公共符号）
 - 回滚 commit：`3980b25`（REF-CORE 文档与基线提交）
 - 等价性 fixture：`tests/fixtures/refactor/core-d1-d2/{before,after}.json`
+- 契约审计：`doc/refactor/CONTRACT_AUDIT.md`（dataclass / Protocol / 单位 / shape）
 - 结论：`PASS`
 
 ## 人工检查
